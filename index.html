@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CKD Prediction System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e8f1ff, #f7fbff);
+            min-height: 100vh;
+            padding: 30px;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            padding: 30px;
+            border-radius: 18px 18px 0 0;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .content {
+            background: white;
+            padding: 30px;
+            border-radius: 0 0 18px 18px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.10);
+        }
+
+        .section-title {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #1d4ed8;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 7px;
+            color: #374151;
+        }
+
+        input,
+        select {
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+        }
+
+        .button-area {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 14px 45px;
+            border-radius: 9px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+        }
+
+        .result h2 {
+            margin-bottom: 12px;
+        }
+
+        .prediction {
+            font-size: 30px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .probability {
+            font-size: 18px;
+            margin-top: 8px;
+        }
+
+        .success {
+            background: #ecfdf5;
+            border: 2px solid #10b981;
+            color: #065f46;
+        }
+
+        .warning {
+            background: #fff7ed;
+            border: 2px solid #f97316;
+            color: #9a3412;
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 2px solid #ef4444;
+            color: #991b1b;
+        }
+
+        .status {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .status span {
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        @media (max-width: 800px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 550px) {
+            body {
+                padding: 15px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 25px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>CKD Prediction System</h1>
+        <p>Machine Learning Based Chronic Kidney Disease Prediction</p>
+    </div>
+
+    <div class="content">
+
+        <h2 class="section-title">Patient Information</h2>
+
+        <form id="predictionForm">
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" value="48" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="bp">Blood Pressure</label>
+                    <input type="number" id="bp" value="80" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="sg">Specific Gravity</label>
+                    <input type="number" id="sg" step="0.01" value="1.02" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="al">Albumin</label>
+                    <input type="number" id="al" value="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="bgr">Blood Glucose</label>
+                    <input type="number" id="bgr" value="121" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="bu">Blood Urea</label>
+                    <input type="number" id="bu" value="36" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="sc">Serum Creatinine</label>
+                    <input type="number" id="sc" step="0.1" value="1.2" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="hemo">Hemoglobin</label>
+                    <input type="number" id="hemo" step="0.1" value="15.4" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="htn">Hypertension</label>
+                    <select id="htn">
+                        <option value="no">No</option>
+                        <option value="yes">Yes</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="dm">Diabetes Mellitus</label>
+                    <select id="dm">
+                        <option value="no">No</option>
+                        <option value="yes">Yes</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="button-area">
+                <button type="submit" id="predictButton">
+                    Predict CKD
+                </button>
+            </div>
+
+        </form>
+
+        <div id="result" class="result">
+            <h2>Prediction Result</h2>
+            <div id="prediction" class="prediction"></div>
+            <div id="probability" class="probability"></div>
+            <p id="message"></p>
+        </div>
+
+        <div class="status">
+            API Status:
+            <span id="apiStatus">Checking...</span>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        Experiment 5 | Machine Learning Model Deployment using FastAPI
+    </div>
+
+</div>
+
+
+<script>
+
+    // =========================================================
+    // FASTAPI SERVER
+    // =========================================================
+
+    const API_URL = "http://127.0.0.1:8000";
+
+
+    // =========================================================
+    // CHECK API STATUS
+    // =========================================================
+
+    async function checkAPI() {
+
+        const statusElement = document.getElementById("apiStatus");
+
+        try {
+
+            const response = await fetch(
+                `${API_URL}/health`,
+                {
+                    method: "GET",
+                    mode: "cors",
+                    cache: "no-cache"
+                }
+            );
+
+            console.log("Health response:", response.status);
+
+            if (!response.ok) {
+                throw new Error(
+                    "API returned status " + response.status
+                );
+            }
+
+            const data = await response.json();
+
+            console.log("Health data:", data);
+
+            if (data.model_loaded === true) {
+
+                statusElement.textContent = "Online ✓";
+                statusElement.style.color = "green";
+
+            } else {
+
+                statusElement.textContent =
+                    "Online - Model Not Loaded";
+
+                statusElement.style.color = "orange";
+            }
+
+        } catch (error) {
+
+            console.error("API health check failed:", error);
+
+            statusElement.textContent = "Offline";
+            statusElement.style.color = "red";
+        }
+    }
+
+
+    // =========================================================
+    // PREDICTION
+    // =========================================================
+
+    document
+        .getElementById("predictionForm")
+        .addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+        const button =
+            document.getElementById("predictButton");
+
+        const resultBox =
+            document.getElementById("result");
+
+        const predictionText =
+            document.getElementById("prediction");
+
+        const probabilityText =
+            document.getElementById("probability");
+
+        const messageText =
+            document.getElementById("message");
+
+
+        // -----------------------------------------------------
+        // GET FORM VALUES
+        // -----------------------------------------------------
+
+        const data = {
+
+            age: Number(
+                document.getElementById("age").value
+            ),
+
+            bp: Number(
+                document.getElementById("bp").value
+            ),
+
+            sg: Number(
+                document.getElementById("sg").value
+            ),
+
+            al: Number(
+                document.getElementById("al").value
+            ),
+
+            bgr: Number(
+                document.getElementById("bgr").value
+            ),
+
+            bu: Number(
+                document.getElementById("bu").value
+            ),
+
+            sc: Number(
+                document.getElementById("sc").value
+            ),
+
+            hemo: Number(
+                document.getElementById("hemo").value
+            ),
+
+            htn: document.getElementById("htn").value,
+
+            dm: document.getElementById("dm").value
+        };
+
+
+        console.log("Sending prediction data:", data);
+
+
+        // -----------------------------------------------------
+        // BUTTON
+        // -----------------------------------------------------
+
+        button.disabled = true;
+        button.textContent = "Predicting...";
+
+
+        try {
+
+            // -------------------------------------------------
+            // SEND DATA TO FASTAPI
+            // -------------------------------------------------
+
+            const response = await fetch(
+                `${API_URL}/predict`,
+                {
+                    method: "POST",
+
+                    mode: "cors",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+
+                    body: JSON.stringify(data)
+                }
+            );
+
+
+            console.log(
+                "Prediction response status:",
+                response.status
+            );
+
+
+            const result = await response.json();
+
+            console.log(
+                "Prediction response:",
+                result
+            );
+
+
+            // -------------------------------------------------
+            // ERROR
+            // -------------------------------------------------
+
+            if (!response.ok) {
+
+                throw new Error(
+                    result.detail
+                        ? JSON.stringify(result.detail)
+                        : "Prediction failed"
+                );
+            }
+
+
+            // -------------------------------------------------
+            // SHOW RESULT
+            // -------------------------------------------------
+
+            resultBox.style.display = "block";
+
+
+            if (result.prediction === "CKD") {
+
+                resultBox.className = "result warning";
+
+                predictionText.textContent =
+                    "CKD Detected";
+
+            } else {
+
+                resultBox.className = "result success";
+
+                predictionText.textContent =
+                    "Not CKD";
+            }
+
+
+            // -------------------------------------------------
+            // PROBABILITY
+            // -------------------------------------------------
+
+            if (
+                result.model_probability !== undefined &&
+                result.model_probability !== null
+            ) {
+
+                const probability =
+                    Number(result.model_probability) * 100;
+
+                probabilityText.textContent =
+                    "Model Probability: " +
+                    probability.toFixed(2) +
+                    "%";
+
+            } else {
+
+                probabilityText.textContent = "";
+            }
+
+
+            // -------------------------------------------------
+            // MESSAGE
+            // -------------------------------------------------
+
+            messageText.textContent =
+                result.message ||
+                "Prediction generated successfully.";
+
+
+            // API is definitely online after successful prediction
+            const statusElement =
+                document.getElementById("apiStatus");
+
+            statusElement.textContent =
+                "Online ✓";
+
+            statusElement.style.color =
+                "green";
+
+
+        } catch (error) {
+
+            console.error(
+                "Prediction error:",
+                error
+            );
+
+            resultBox.style.display = "block";
+
+            resultBox.className =
+                "result error";
+
+            predictionText.textContent =
+                "Prediction Error";
+
+            probabilityText.textContent = "";
+
+            messageText.textContent =
+                error.message ||
+                "Could not connect to API.";
+
+        } finally {
+
+            button.disabled = false;
+
+            button.textContent = "Predict CKD";
+        }
+
+    });
+
+
+    // =========================================================
+    // CHECK API WHEN PAGE LOADS
+    // =========================================================
+
+    checkAPI();
+
+
+    // Check again every 10 seconds
+    setInterval(checkAPI, 10000);
+
+</script>
+
+</body>
+</html>
